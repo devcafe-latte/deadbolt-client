@@ -1,7 +1,8 @@
+import { Identifier } from 'typescript';
 import { DeadboltError } from './Error';
 import { FetchWrapper } from './fetch/FetchWrapper';
-import { DeadboltClientOptions, DeadboltSearchCriteria, DeadboltStatus, identifier, twoFactorType } from './Types';
-import { SessionResponse } from './Users/Session';
+import { DeadboltClientOptions, DeadboltSearchCriteria, DeadboltStatus, identifier, twoFactorType, BasicResponse } from './Types';
+import { SessionResponse, TwoFactorSetupResponse, TwoFactorData } from './Users/Session';
 import { Credentials, DeadboltUser, Membership, NewUserData } from './Users/User';
 import { getErrorCode } from './util/helpers';
 import { Page, PageResult } from './util/Page';
@@ -54,10 +55,29 @@ export class DeadboltClient {
     }
   }
 
+  async setupTwoFactor(identifier: identifier, type: twoFactorType = 'totp'): Promise<TwoFactorSetupResponse> {
+    const result = await this._fetch.post('setup-2fa', { type, identifier });
+    if (result.status !== 200) throw DeadboltError.new('2fa-reset-error');
 
-  async verify2Fa(identifier: identifier, token: string, userToken: string): Promise<DeadboltUser> {
+    const data = TwoFactorSetupResponse.deserialize(result.body.data);
+    data.type = type;
+
+    return data;
+  }
+
+  async requestTwoFactor(identifier: identifier, type: twoFactorType = 'totp'): Promise<TwoFactorData> {
+    const result = await this._fetch.post('request-2fa', { type, identifier });
+    if (result.status !== 200) throw DeadboltError.new('2fa-request-error');
+
+    const data = TwoFactorData.deserialize(result.body.data);
+    data.type = type;
+
+    return data;
+  }
+
+  async verifyTwoFactor(identifier: identifier, token: string, userToken: string, type: twoFactorType): Promise<SessionResponse> {
     const body = {
-      type: "totp",
+      type,
       identifier,
       data: {
         token: token,
@@ -66,15 +86,15 @@ export class DeadboltClient {
     };
 
     const postResponse = await this._fetch.post('verify-2fa', body);
-    if (postResponse.status !== 200) {
-      // const reason: string = postResponse.body && postResponse.body.reason ? postResponse.body.reason : "Unknown Error";
-      // const code = reason.toLowerCase().replace(/\s/g, '-');
+    if (postResponse.status === 422) {
+      return SessionResponse.failed(postResponse.body.reason);
+    } else if (postResponse.status !== 200) {
+      console.error(postResponse.error, postResponse.body);
       throw DeadboltError.new("2fa-verifiy-failed");
     }
 
     //verified!
-    const user = DeadboltUser.deserialize(postResponse.body.user);
-    return user;
+    return SessionResponse.deserialize(postResponse.body);
   }
 
   async confirmEmail(token: string) {
@@ -86,9 +106,9 @@ export class DeadboltClient {
     return success;
   }
 
-  async requestPasswordReset(identifier: identifier): Promise<{ success: boolean, token: string, uuid: string }> {
+  async requestPasswordReset(email: string): Promise<{ success: boolean, token: string, uuid: string }> {
 
-    const result = await this._fetch.post('reset-password-token', { identifier });
+    const result = await this._fetch.post('reset-password-token', { email });
 
     if (result.status === 200) {
       return {
@@ -98,35 +118,45 @@ export class DeadboltClient {
       };
     }
 
+    console.log("WTF", result.status);
+
     const err = getErrorCode(result);
+    if (err === "email-address-not-found") return { success: false, token: null, uuid: null };
+
     console.log("Unknown error, requesting password Reset", result);
     throw DeadboltError.new(err);
   }
 
-  async passwordReset(token: string, password: string): Promise<string> {
-
+  async passwordReset(token: string, password: string): Promise<BasicResponse> {
     const result = await this._fetch.post('reset-password', { token, password });
 
     if (result.status === 200) {
       const user = await this.getUser(result.body.uuid);
-      return 'ok';
+      return { success: true };
     }
 
     const error = getErrorCode(result);
     console.error(error);
 
-    return error;
+    return { success: false, reason: error };
   }
 
-  async changePassword(uuid: string, password: string) {
+  async verifyAndChangePassword(uuid: string, oldPassword: string, newPassword: string): Promise<BasicResponse> {
+    if (!await this.verifyPassword(uuid, oldPassword)) return { success: false, reason: 'password-incorrect' };
+
+    return this.changePassword(uuid, newPassword);
+  }
+
+  async changePassword(uuid: string, password: string): Promise<BasicResponse> {
     const result = await this._fetch.put('password', { uuid, password });
 
     if (result.status === 200) {
-      return;
+      return { success: true };
     }
 
     console.log("Unknown error, ChangePassword", result);
-    throw result.error;
+    const error = getErrorCode(result);
+    return { success: false, reason: error };
   }
 
   async verifyPassword(identifier: string, password: string): Promise<boolean> {
@@ -145,8 +175,10 @@ export class DeadboltClient {
     throw result.error;
   }
 
-  async getUser(identifier: identifier) {
+  async getUser(identifier: identifier): Promise<DeadboltUser> {
     const data = await this._fetch.get(`user/${identifier}`);
+    if (data.status === 404) return null;
+
     if (data.status !== 200) {
       console.error(data);
       throw DeadboltError.new("error-getting-user");
@@ -204,7 +236,7 @@ export class DeadboltClient {
     return updatedUser;
   }
 
-  private async updateMemberships(identifier: identifier, memberships: Membership[]): Promise<DeadboltUser> {
+  async updateMemberships(identifier: identifier, memberships: Membership[]): Promise<DeadboltUser> {
     const result = await this._fetch.put('memberships', { identifier, memberships: Serializer.serialize(memberships) });
     if (result.status !== 200) {
       console.error(result);
@@ -222,9 +254,9 @@ export class DeadboltClient {
     }
   }
 
-  async getTokens(type: twoFactorType, page: number = 0) {
+  async getTokens(type: twoFactorType, page: number = 0): Promise<Page<TwoFactorData>> {
     const result = await this._fetch.get(`2fa-tokens?page=${page}&type=${type}`);
-    return result.body;
+    return new Page<TwoFactorData>(result.body.data, TwoFactorData);
   }
 
   async forceConfirmEmail(email: string) {
@@ -235,11 +267,8 @@ export class DeadboltClient {
     return await this.confirmEmail(u.emailConfirmToken);
   }
 
-  async reset2fa(uuid: string, type: twoFactorType = 'totp') {
-    const result = await this._fetch.post('setup-2fa', { type, identifier: uuid });
-    if (result.status !== 200) throw DeadboltError.new('2fa-reset-error');
-
-    await this._fetch.delete(`session/all/${uuid}`);
+  async logoutAllSessions(identifier: Identifier) {
+    await this._fetch.delete(`session/all/${identifier}`);
   }
 
 }

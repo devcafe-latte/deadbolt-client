@@ -1,7 +1,13 @@
 import { Membership } from './Users/User';
 import { toQueryParams } from './util/helpers';
+
 export interface DeadboltClientOptions {
   endpoint: string;
+}
+
+export interface BasicResponse {
+  success: boolean;
+  reason?: string;
 }
 
 export interface DeadboltStatus {

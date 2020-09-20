@@ -38,6 +38,24 @@ export class Session {
 
 }
 
+export class TwoFactorSetupResponse {
+  type: twoFactorType = null;
+  message?: string = null;
+  confirmed?: boolean = null;
+  expires?: Moment = null;
+  userToken?: string = null;
+  secret?: string = null;
+  otpAuthUrl?: string = null;
+
+  static deserialize(data: any): TwoFactorSetupResponse {
+    const m: ObjectMapping = {
+      confirmed: 'moment',
+    }
+
+    return Serializer.deserialize<TwoFactorSetupResponse>(TwoFactorSetupResponse, data, m);
+  }
+}
+
 export class SessionResponse {
   success: boolean = null;
   user?: DeadboltUser = null;
@@ -71,6 +89,7 @@ export class TwoFactorData {
   used?: boolean = null;
   token?: string = null; //The token to send to email/sms
   userToken: string = null; //The tokent to give the front-end client
+  attempt?: number = null;
 
   static deserialize(data: any): TwoFactorData {
     const m: ObjectMapping = {
