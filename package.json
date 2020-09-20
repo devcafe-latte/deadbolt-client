@@ -1,0 +1,36 @@
+{
+  "name": "deadbolt-client",
+  "version": "1.0.0",
+  "description": "Client for Deadbolt",
+  "main": "build/DeadboltClient.js",
+  "types": "build/DeadboltClient.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jasmine-ts --config=jasmine.json",
+    "prepublis": "tsc"
+  },
+  "author": "Co van Leeuwen",
+  "license": "MIT",
+  "dependencies": {
+    "@types/lodash": "^4.14.161",
+    "@types/moment": "^2.13.0",
+    "@types/node-fetch": "^2.5.7",
+    "lodash": "^4.17.20",
+    "moment": "^2.27.0",
+    "node-fetch": "^2.6.0",
+    "typescript": "^3.5.3"
+  },
+  "devDependencies": {
+    "@types/jasmine": "^3.4.0",
+    "@types/node": "^14.6.2",
+    "@types/seedrandom": "^2.4.28",
+    "jasmine": "^3.4.0",
+    "jasmine-core": "^3.4.0",
+    "jasmine-reporters": "^2.3.2",
+    "jasmine-ts": "^0.3.0",
+    "jasmine-xml-reporter": "^1.2.1",
+    "nyc": "^14.1.1",
+    "seedrandom": "^2.4.4",
+    "ts-node": "^8.3.0"
+  }
+}
