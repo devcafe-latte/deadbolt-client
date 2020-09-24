@@ -3,8 +3,7 @@ import { Moment } from 'moment';
 import moment from 'moment';
 import { randomBytes } from 'crypto';
 import { DeadboltUser } from './User';
-import { ObjectMapping } from '../../build/util/Serializer';
-import { Serializer } from '../util/Serializer';
+import { Serializer, ObjectMapping } from '../util/Serializer';
 import { twoFactorType } from '../Types';
 
 export class Session {

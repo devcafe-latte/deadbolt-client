@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsc",
     "test": "jasmine-ts --config=jasmine.json",
-    "prepublis": "tsc"
+    "prepublish": "tsc"
   },
   "author": "Co van Leeuwen",
   "license": "MIT",

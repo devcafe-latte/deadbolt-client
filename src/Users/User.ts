@@ -1,9 +1,7 @@
 import { Moment } from 'moment';
-import { ObjectMapping } from '../../build/util/Serializer';
-import { Serializer } from '../util/Serializer';
+import { Serializer, ObjectMapping } from '../util/Serializer';
 import { Session } from './Session';
 import { twoFactorType, identifier } from '../Types';
-import { DeadboltError } from '../Error';
 import { isArray } from 'lodash';
 
 export interface Membership {
