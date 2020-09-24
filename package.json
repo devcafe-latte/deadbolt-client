@@ -4,6 +4,10 @@
   "description": "Client for Deadbolt",
   "main": "build/DeadboltClient.js",
   "types": "build/DeadboltClient.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/devcafe-latte/deadbolt-client.git"
+  },
   "scripts": {
     "build": "tsc",
     "test": "jasmine-ts --config=jasmine.json",
