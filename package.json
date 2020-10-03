@@ -4,6 +4,10 @@
   "description": "Client for Deadbolt",
   "main": "build/DeadboltClient.js",
   "types": "build/DeadboltClient.d.ts",
+  "files": [
+    "build/**/*",
+    "!build/**/*.spec.*"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/devcafe-latte/deadbolt-client.git"
