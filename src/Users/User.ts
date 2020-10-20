@@ -19,6 +19,7 @@ export interface NewUserData {
   firstName?: string;
   lastName?: string;
   twoFactor?: twoFactorType;
+  memberships?: Membership[];
 }
 
 export interface Credentials {
