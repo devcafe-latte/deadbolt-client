@@ -229,7 +229,7 @@ export class DeadboltClient {
     if (userData.memberships) updatedUser = await this.updateMemberships(userData.uuid, userData.memberships);
 
     //Kill sessions
-    if (!userData.active) await this._fetch.delete(`session/all/${userData.uuid}`);
+    if (userData.active === false) await this._fetch.delete(`session/all/${userData.uuid}`);
 
     if (!updatedUser) updatedUser = await this.getUser(userData.uuid);
 
