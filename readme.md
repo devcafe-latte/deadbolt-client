@@ -37,5 +37,5 @@ client.login({ identifier, password }).then(result => {
 [ ] Most of the documentation
 [ ] Setup automated testing
 [ ] Publish on npm
-[ ] Link to specific version of Deadbolt (currentl 2.1.0)
+[ ] Link to specific version of Deadbolt (current 2.1.1)
 [ ] Redo deadbolt :see-no-evil:

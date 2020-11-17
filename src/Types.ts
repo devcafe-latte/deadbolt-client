@@ -39,7 +39,7 @@ export class DeadboltSearchCriteria {
 
     if (this.membership) {
       for (let m of this.membership) {
-        const value = encodeURIComponent(`${m.app}:${m.role}`);
+        const value = encodeURIComponent(`"${m.app}":"${m.role}"`);
         params.push(`membership=${value}`);
       }
     }

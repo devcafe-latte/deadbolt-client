@@ -13,12 +13,13 @@ describe("Client, no2fa", () => {
 
   beforeEach(async (done) => {
     deadbolt = new DeadboltClient();
+    await deadbolt.purge(testUserCreds.email).catch(() => {});
     testUser = await deadbolt.addUser(testUserCreds);
     done();
   });
-
+  
   afterEach(async (done) => {
-    await deadbolt.purge(testUser.uuid);
+    //await deadbolt.purge(testUser.uuid).catch(() => {});
     done();
   });
 
@@ -167,8 +168,24 @@ describe("Client, no2fa", () => {
     done();
   });
 
+  it("Search users with memberships", async (done) => {
+    await deadbolt.updateMemberships(testUser.uuid, [{ app: 'some:app', role: 'some:role' }]);
+
+    const s = new DeadboltSearchCriteria();
+    s.membership = [{ app: 'some:app', role: 'some:role' }];
+
+    const page = await deadbolt.getUsers(s);
+    expect(page.items.length).toBeGreaterThan(0);
+    expect(page.currentPage).toBe(0);
+
+    const u = page.items.find(u => u.uuid === testUser.uuid);
+    expect(u).not.toBeNull();
+
+    done();
+  });
+
   it("update Users", async (done) => {
-    
+
     const update = await deadbolt.updateUser({ firstName: 'derek', uuid: testUser.uuid });
     expect(update.firstName).toBe('derek');
 
@@ -179,7 +196,7 @@ describe("Client, no2fa", () => {
     testUser.addRoles(['admin', 'fryer', 'nun', 'chair'], 'test-app');
 
     const update = await deadbolt.updateMemberships(testUser.uuid, testUser.memberships);
-    
+
     expect(update.memberships.length).toBe(4);
 
     done();
@@ -215,12 +232,8 @@ describe("Client 2fa", () => {
 
   beforeEach(async (done) => {
     deadbolt = new DeadboltClient();
+    await deadbolt.purge(testUserCreds.email);
     testUser = await deadbolt.addUser(testUserCreds);
-    done();
-  });
-
-  afterEach(async (done) => {
-    await deadbolt.purge(testUser.uuid);
     done();
   });
 
