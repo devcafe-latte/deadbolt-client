@@ -10,6 +10,12 @@ export interface BasicResponse {
   reason?: string;
 }
 
+export interface PasswordResetResponse {
+  success: boolean;
+  uuid?: string;
+  reason?: string;
+}
+
 export interface DeadboltStatus {
   express: string,
   database: string,

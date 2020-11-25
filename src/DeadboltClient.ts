@@ -1,7 +1,7 @@
 import { Identifier } from 'typescript';
 import { DeadboltError } from './Error';
 import { FetchWrapper } from './fetch/FetchWrapper';
-import { DeadboltClientOptions, DeadboltSearchCriteria, DeadboltStatus, identifier, twoFactorType, BasicResponse } from './Types';
+import { DeadboltClientOptions, DeadboltSearchCriteria, DeadboltStatus, identifier, twoFactorType, BasicResponse, PasswordResetResponse } from './Types';
 import { SessionResponse, TwoFactorSetupResponse, TwoFactorData } from './Users/Session';
 import { Credentials, DeadboltUser, Membership, NewUserData } from './Users/User';
 import { getErrorCode } from './util/helpers';
@@ -127,12 +127,11 @@ export class DeadboltClient {
     throw DeadboltError.new(err);
   }
 
-  async passwordReset(token: string, password: string): Promise<BasicResponse> {
+  async passwordReset(token: string, password: string): Promise<PasswordResetResponse> {
     const result = await this._fetch.post('reset-password', { token, password });
 
     if (result.status === 200) {
-      const user = await this.getUser(result.body.uuid);
-      return { success: true };
+      return { success: true, uuid: result.body.uuid };
     }
 
     const error = getErrorCode(result);
