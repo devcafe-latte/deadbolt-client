@@ -90,6 +90,11 @@ export class TwoFactorData {
   userToken: string = null; //The tokent to give the front-end client
   attempt?: number = null;
 
+  secret?: string = null;
+  confirmed?: boolean = null;
+  otpAuthUrl?: string = null;
+
+
   static deserialize(data: any): TwoFactorData {
     const m: ObjectMapping = {
       expires: 'moment',
