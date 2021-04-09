@@ -30,7 +30,7 @@ export class DeadboltClient {
 
   async login(creds: Credentials): Promise<SessionResponse> {
     //Talk to User middleware
-    const data = await this._fetch.post("session", { username: creds.identifier, password: creds.password, app: creds.app });
+    const data = await this._fetch.post("session", { username: creds.identifier, password: creds.password, app: creds.app, twoFactorType: creds.twoFactorType });
 
     if (data.status === 422) {
       return SessionResponse.failed(data.body.reason);

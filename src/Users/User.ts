@@ -1,6 +1,6 @@
 import { Moment } from 'moment';
 import { Serializer, ObjectMapping } from '../util/Serializer';
-import { Session } from './Session';
+import { Session, TwoFactorData } from './Session';
 import { twoFactorType, identifier } from '../Types';
 import { isArray } from 'lodash';
 
@@ -26,6 +26,7 @@ export interface Credentials {
   identifier: identifier,
   password: string,
   app?: string,
+  twoFactorType?: twoFactorType,
 }
 
 export class DeadboltUser {
