@@ -30,7 +30,7 @@ export class DeadboltSearchCriteria {
   membership?: Membership[];
   page: number = 0;
   perPage: number = 25;
-  orderBy: string | string[] = 'email';
+  orderBy: OrderBy | OrderBy[] = OrderBy.EMAIL_ASC;
 
   static searchUuids(uuids: string | string[]): DeadboltSearchCriteria {
     if (!Array.isArray(uuids)) uuids = [uuids];
@@ -56,3 +56,18 @@ export class DeadboltSearchCriteria {
 
 export type identifier = string | number;
 export type twoFactorType = "totp" | "email" | "sms";
+
+export enum OrderBy {
+  EMAIL_ASC = 'email',
+  EMAIL_DESC = '-email',
+  FIRST_NAME_ASC = 'first-name',
+  FIRST_NAME_DESC = '-first-name',
+  LAST_NAME_ASC = 'last-name',
+  LAST_NAME_DESC = '-last-name',
+  CREATED_ASC = 'created',
+  CREATED_DESC = '-created',
+  LAST_ACTIVITY_ASC = 'last-activity',
+  LAST_ACTIVITY_DESC = '-last-activity',
+  USERNAME_ASC = 'username',
+  USERNAME_DESC = '-username',
+}

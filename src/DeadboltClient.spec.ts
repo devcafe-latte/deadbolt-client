@@ -1,6 +1,78 @@
 import { DeadboltClient } from './DeadboltClient';
-import { DeadboltSearchCriteria, DeadboltStatus } from './Types';
+import { DeadboltSearchCriteria, DeadboltStatus, OrderBy } from './Types';
 import { DeadboltUser, NewUserData } from './Users/User';
+
+describe("Client Searching Users", () => {
+  let deadbolt: DeadboltClient;
+  const testUserCreds1: NewUserData = {
+    email: 'db-client-test-1@example.com',
+    username: 'mrkrabs',
+    password: 'password',
+  };
+  let testUser1: DeadboltUser;
+  const testUserCreds2: NewUserData = {
+    email: 'db-client-test-2@example.com',
+    username: 'spongebob',
+    password: 'password',
+  };
+  let testUser2: DeadboltUser;
+
+  beforeEach(async () => {
+    deadbolt = new DeadboltClient();
+    await deadbolt.purge(testUserCreds1.email).catch(() => {});
+    testUser1 = await deadbolt.addUser(testUserCreds1);
+    await deadbolt.purge(testUserCreds2.email).catch(() => {});
+    testUser2 = await deadbolt.addUser(testUserCreds2);
+  });
+
+  it("get users", async (done) => {
+    const s = new DeadboltSearchCriteria();
+    s.email = 'db-client-test-';
+
+    const page = await deadbolt.getUsers(s);
+    expect(page.items.length).toBe(2);
+    expect(page.currentPage).toBe(0);
+
+    const u = page.items.find(u => u.uuid === testUser1.uuid);
+    expect(u).not.toBeNull();
+
+    done();
+  });
+
+  it("Search users with memberships", async (done) => {
+    await deadbolt.updateMemberships(testUser1.uuid, [{ app: 'some:app', role: 'some:role' }]);
+
+    const s = new DeadboltSearchCriteria();
+    s.membership = [{ app: 'some:app', role: 'some:role' }];
+
+    const page = await deadbolt.getUsers(s);
+    expect(page.items.length).toBeGreaterThan(0);
+    expect(page.currentPage).toBe(0);
+
+    const u = page.items.find(u => u.uuid === testUser1.uuid);
+    expect(u).not.toBeNull();
+
+    done();
+  });
+
+  it("Ordering", async () => {
+    const s = new DeadboltSearchCriteria();
+    s.email = 'db-client-test-';
+
+    s.orderBy = OrderBy.EMAIL_ASC;
+    let page = await deadbolt.getUsers(s);
+    expect(page.items.length).toBe(2);
+    expect(page.items[0].email).toBe('db-client-test-1@example.com');
+    expect(page.items[1].email).toBe('db-client-test-2@example.com');
+
+    s.orderBy = OrderBy.EMAIL_DESC;
+    page = await deadbolt.getUsers(s);
+    expect(page.items.length).toBe(2);
+    expect(page.items[0].email).toBe('db-client-test-2@example.com');
+    expect(page.items[1].email).toBe('db-client-test-1@example.com');
+  });
+
+});
 
 describe("Client, no2fa", () => {
   let deadbolt: DeadboltClient;
@@ -154,36 +226,6 @@ describe("Client, no2fa", () => {
     done();
   });
 
-  it("get users", async (done) => {
-    const s = new DeadboltSearchCriteria();
-    s.email = 'test@';
-
-    const page = await deadbolt.getUsers(s);
-    expect(page.items.length).toBeGreaterThan(0);
-    expect(page.currentPage).toBe(0);
-
-    const u = page.items.find(u => u.uuid === testUser.uuid);
-    expect(u).not.toBeNull();
-
-    done();
-  });
-
-  it("Search users with memberships", async (done) => {
-    await deadbolt.updateMemberships(testUser.uuid, [{ app: 'some:app', role: 'some:role' }]);
-
-    const s = new DeadboltSearchCriteria();
-    s.membership = [{ app: 'some:app', role: 'some:role' }];
-
-    const page = await deadbolt.getUsers(s);
-    expect(page.items.length).toBeGreaterThan(0);
-    expect(page.currentPage).toBe(0);
-
-    const u = page.items.find(u => u.uuid === testUser.uuid);
-    expect(u).not.toBeNull();
-
-    done();
-  });
-
   it("update Users", async (done) => {
 
     const update = await deadbolt.updateUser({ firstName: 'derek', uuid: testUser.uuid });
@@ -232,7 +274,7 @@ describe("Client 2fa", () => {
 
   beforeEach(async (done) => {
     deadbolt = new DeadboltClient();
-    await deadbolt.purge(testUserCreds.email);
+    await deadbolt.purge(testUserCreds.email).catch(() => {});
     testUser = await deadbolt.addUser(testUserCreds);
     done();
   });

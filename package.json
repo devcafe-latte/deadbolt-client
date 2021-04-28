@@ -1,6 +1,6 @@
 {
   "name": "deadbolt-client",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Client for Deadbolt",
   "main": "build/DeadboltClient.js",
   "types": "build/DeadboltClient.d.ts",
